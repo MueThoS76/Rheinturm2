@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<head>
+	<title>Rheinturm Einstellungen</title>
+</head>
+<body onload="GetData('data.xml')">
+    <h1>Rheinturm</h1>
+    <h2>Einstellungen</h2>
+    <h3>Farben</h3>
+
+    <button onclick="GetData('data.xml')">Get XML data</button>
+    <button onclick="SetData('data.xml')">Set XML data</button>
+
+    <div>
+        <input type="color" id="CLOCK_COLOR_SEKUNDEN_EINER" name="CLOCK_COLOR_SEKUNDEN_EINER">
+        <label for="CLOCK_COLOR_SEKUNDEN_EINER">CLOCK_COLOR_SEKUNDEN_EINER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_SEKUNDEN_ZEHNER" name="CLOCK_COLOR_SEKUNDEN_ZEHNER">
+        <label for="CLOCK_COLOR_SEKUNDEN_ZEHNER">CLOCK_COLOR_SEKUNDEN_ZEHNER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_MINUTEN_EINER" name="CLOCK_COLOR_MINUTEN_EINER">
+        <label for="CLOCK_COLOR_MINUTEN_EINER">CLOCK_COLOR_MINUTEN_EINER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_MINUTEN_ZEHNER" name="CLOCK_COLOR_MINUTEN_ZEHNER">
+        <label for="CLOCK_COLOR_MINUTEN_ZEHNER">CLOCK_COLOR_MINUTEN_ZEHNER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_STUNDEN_EINER" name="CLOCK_COLOR_STUNDEN_EINER">
+        <label for="CLOCK_COLOR_STUNDEN_EINER">CLOCK_COLOR_STUNDEN_EINER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_STUNDEN_ZEHNER" name="CLOCK_COLOR_STUNDEN_ZEHNER">
+        <label for="CLOCK_COLOR_STUNDEN_ZEHNER">CLOCK_COLOR_STUNDEN_ZEHNER</label>
+    </div>
+    <div>
+        <input type="color" id="CLOCK_COLOR_OFF" name="CLOCK_COLOR_OFF">
+        <label for="CLOCK_COLOR_OFF">CLOCK_COLOR_OFF</label>
+    </div>
+    <div>
+        <input type="range" id="Helligkeit" name="Helligkeit" min="0" max="255" value="50">
+        <label for="Helligkeit">Helligkeit</label>
+    </div>
+
+    <h3>Wecker</h3>
+
+    <div>
+      <input type="time" id="wecker" name="wecker" min="00:00" max="23:59">
+      <input type="checkbox" id="wecker_activ" name="scales" checked>
+      <label for="wecker">Wecker</label>
+    </div>
+
+  <h3>Modus</h3>
+  <div>
+    <fieldset>
+      <legend>Modus:</legend>
+      <div>
+        <input type="radio" id="Uhrzeit" name="Modus" value="Uhrzeit" checked>
+        <label for="Uhrzeit">Uhrzeit</label>
+      </div>
+      <div>
+        <input type="radio" id="Party" name="Modus" value="Party">
+        <label for="Party">Party</label>
+      </div>
+    </fieldset>
+  </div>
+
+
+
+  <script>
+    function GetData(url) {
+      const xhttp = new XMLHttpRequest();
+      xhttp.onload = function() {
+        parser = new DOMParser();
+        xmlDoc = this.responseXML;
+        values = document.querySelectorAll('input');
+        for(var i = 0; i < values.length; i++) {
+          if (xmlDoc.getElementsByTagName(values[i].id)[0].childNodes[0]) {
+            values[i].value = xmlDoc.getElementsByTagName(values[i].id)[0].childNodes[0].nodeValue;
+          }
+        }
+      }
+      xhttp.open("GET", url);
+      xhttp.send();
+    }
+
+
+    function SetData(url){
+      var parser = new DOMParser();
+      var xml = "<?xml version=\"1.0\" standalone=\"yes\" ?>";
+      xml = xml + "<VALUES>";
+      values = document.querySelectorAll('input');
+      for(var i = 0; i < values.length; i++) {
+        xml = xml + "<" + values[i].id + ">"  + values[i].value  + "</" + values[i].id + ">";
+      }
+
+      xml = xml + "</VALUES>";
+      var xmlDoc = parser.parseFromString(xml, "application/xml");
+      console.log(xmlDoc);
+    }
+  </script>
+</body>
