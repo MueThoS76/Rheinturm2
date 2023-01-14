@@ -1,55 +1,58 @@
 <!DOCTYPE html>
+
 <head>
-	<title>Rheinturm Einstellungen</title>
+  <title>Rheinturm Einstellungen</title>
 </head>
-<body onload="GetData('data.xml')">
-    <h1>Rheinturm</h1>
-    <h2>Einstellungen</h2>
-    <h3>Farben</h3>
 
-    <button onclick="GetData('data.xml')">Get XML data</button>
-    <button onclick="SetData('data.xml')">Set XML data</button>
+<body onload="GetJSON('data.json')">
+  <h1>Rheinturm</h1>
+  <h2>Einstellungen</h2>
+  <h3>Farben</h3>
 
-    <div>
-        <input type="color" id="CLOCK_COLOR_SEKUNDEN_EINER" name="CLOCK_COLOR_SEKUNDEN_EINER">
-        <label for="CLOCK_COLOR_SEKUNDEN_EINER">CLOCK_COLOR_SEKUNDEN_EINER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_SEKUNDEN_ZEHNER" name="CLOCK_COLOR_SEKUNDEN_ZEHNER">
-        <label for="CLOCK_COLOR_SEKUNDEN_ZEHNER">CLOCK_COLOR_SEKUNDEN_ZEHNER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_MINUTEN_EINER" name="CLOCK_COLOR_MINUTEN_EINER">
-        <label for="CLOCK_COLOR_MINUTEN_EINER">CLOCK_COLOR_MINUTEN_EINER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_MINUTEN_ZEHNER" name="CLOCK_COLOR_MINUTEN_ZEHNER">
-        <label for="CLOCK_COLOR_MINUTEN_ZEHNER">CLOCK_COLOR_MINUTEN_ZEHNER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_STUNDEN_EINER" name="CLOCK_COLOR_STUNDEN_EINER">
-        <label for="CLOCK_COLOR_STUNDEN_EINER">CLOCK_COLOR_STUNDEN_EINER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_STUNDEN_ZEHNER" name="CLOCK_COLOR_STUNDEN_ZEHNER">
-        <label for="CLOCK_COLOR_STUNDEN_ZEHNER">CLOCK_COLOR_STUNDEN_ZEHNER</label>
-    </div>
-    <div>
-        <input type="color" id="CLOCK_COLOR_OFF" name="CLOCK_COLOR_OFF">
-        <label for="CLOCK_COLOR_OFF">CLOCK_COLOR_OFF</label>
-    </div>
-    <div>
-        <input type="range" id="Helligkeit" name="Helligkeit" min="0" max="255" value="50">
-        <label for="Helligkeit">Helligkeit</label>
-    </div>
 
-    <h3>Wecker</h3>
+  <button onclick="SetJSON('data.json',false)">Werte übertragen</button>
+  <button onclick="SetJSON('data.json',true)">Werte speichern</button>
 
-    <div>
-      <input type="time" id="wecker" name="wecker" min="00:00" max="23:59">
-      <input type="checkbox" id="wecker_activ" name="scales" checked>
-      <label for="wecker">Wecker</label>
-    </div>
+  <!-- <div>
+    <input type="color" id="CLOCK_COLOR_SEKUNDEN_EINER" name="CLOCK_COLOR_SEKUNDEN_EINER">
+    <label for="CLOCK_COLOR_SEKUNDEN_EINER">CLOCK_COLOR_SEKUNDEN_EINER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_SEKUNDEN_ZEHNER" name="CLOCK_COLOR_SEKUNDEN_ZEHNER">
+    <label for="CLOCK_COLOR_SEKUNDEN_ZEHNER">CLOCK_COLOR_SEKUNDEN_ZEHNER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_MINUTEN_EINER" name="CLOCK_COLOR_MINUTEN_EINER">
+    <label for="CLOCK_COLOR_MINUTEN_EINER">CLOCK_COLOR_MINUTEN_EINER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_MINUTEN_ZEHNER" name="CLOCK_COLOR_MINUTEN_ZEHNER">
+    <label for="CLOCK_COLOR_MINUTEN_ZEHNER">CLOCK_COLOR_MINUTEN_ZEHNER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_STUNDEN_EINER" name="CLOCK_COLOR_STUNDEN_EINER">
+    <label for="CLOCK_COLOR_STUNDEN_EINER">CLOCK_COLOR_STUNDEN_EINER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_STUNDEN_ZEHNER" name="CLOCK_COLOR_STUNDEN_ZEHNER">
+    <label for="CLOCK_COLOR_STUNDEN_ZEHNER">CLOCK_COLOR_STUNDEN_ZEHNER</label>
+  </div>
+  <div>
+    <input type="color" id="CLOCK_COLOR_OFF" name="CLOCK_COLOR_OFF">
+    <label for="CLOCK_COLOR_OFF">CLOCK_COLOR_OFF</label>
+  </div>
+  <div>
+    <input type="range" id="Helligkeit" name="Helligkeit" min="0" max="255" value="50">
+    <label for="Helligkeit">Helligkeit</label>
+  </div>
+
+  <h3>Wecker</h3>
+
+  <div>
+    <input type="time" id="wecker" name="wecker" min="00:00" max="23:59">
+    <input type="checkbox" id="wecker_activ" name="scales" checked>
+    <label for="wecker">Wecker</label>
+  </div>
 
   <h3>Modus</h3>
   <div>
@@ -64,20 +67,25 @@
         <label for="Party">Party</label>
       </div>
     </fieldset>
+  </div> -->
+
+
+  <div id="form_div">
+
   </div>
 
 
 
   <script>
-    function GetData(url) {
+    function originalGetJSON(url) {
       const xhttp = new XMLHttpRequest();
-      xhttp.onload = function() {
-        parser = new DOMParser();
-        xmlDoc = this.responseXML;
+      xhttp.onload = function () {
+        jsonDOC = JSON.parse(this.responseText);
+        jsonDOC = jsonDOC[0];
         values = document.querySelectorAll('input');
-        for(var i = 0; i < values.length; i++) {
-          if (xmlDoc.getElementsByTagName(values[i].id)[0].childNodes[0]) {
-            values[i].value = xmlDoc.getElementsByTagName(values[i].id)[0].childNodes[0].nodeValue;
+        for (var i = 0; i < values.length; i++) {
+          if (jsonDOC[values[i].id]) {
+            values[i].value = jsonDOC[values[i].id];
           }
         }
       }
@@ -85,19 +93,140 @@
       xhttp.send();
     }
 
+    function GetJSON(url) {
+      const formDiv = document.getElementById("form_div");
+      const xhttp = new XMLHttpRequest();
+      xhttp.onload = function () {
 
-    function SetData(url){
-      var parser = new DOMParser();
-      var xml = "<?xml version=\"1.0\" standalone=\"yes\" ?>";
-      xml = xml + "<VALUES>";
-      values = document.querySelectorAll('input');
-      for(var i = 0; i < values.length; i++) {
-        xml = xml + "<" + values[i].id + ">"  + values[i].value  + "</" + values[i].id + ">";
+        jsonDOC = JSON.parse(this.responseText);
+        jsonDOC = jsonDOC[0];
+
+        Object.keys(jsonDOC).forEach(function (key) {
+          let data = jsonDOC[key]
+
+          // Input Div anlegen
+          const newDiv = document.createElement("div");
+
+          switch (data["type"]) {
+            case "color":
+            case "time":
+              // Input Feld
+              newInputElement = document.createElement("input");
+              newInputElement.setAttribute("type", data["type"]);
+              newInputElement.setAttribute("name", key);
+              newInputElement.setAttribute("id", key);
+              newInputElement.setAttribute("value", data["value"]);
+
+              // Label
+              newLabelElement = document.createElement("label");
+              newLabelElement.setAttribute("for", key);
+              newLabelContent = document.createTextNode(key);
+              newLabelElement.appendChild(newLabelContent);
+              // Am Div anhängen
+              newDiv.appendChild(newInputElement);
+              newDiv.appendChild(newLabelElement);
+              break;
+
+            case "radio":
+              const newFieldsetElement = document.createElement("fieldset");
+              const newLegendElement = document.createElement("legend");
+              const newLegendContent = document.createTextNode(key);
+              newLegendElement.appendChild(newLegendContent);
+              newFieldsetElement.appendChild(newLegendElement);
+
+              const options = data["options"];
+              Object.keys(options).forEach(function (optionkey) {
+                const newOptionsDiv = document.createElement("div");
+                console.log(options[optionkey]);
+                newInputElement = document.createElement("input");
+                newInputElement.setAttribute("type", "radio");
+                newInputElement.setAttribute("name", key);
+                newInputElement.setAttribute("id", options[optionkey]["value"]);
+                newInputElement.setAttribute("value", options[optionkey]["value"]);
+                if (options[optionkey]["checked"] === "true") newInputElement.setAttribute("checked", true);
+
+                const newLabelElement = document.createElement("label");
+                newLabelElement.setAttribute("for", options[optionkey]["value"]);
+                newLabelContent = document.createTextNode(options[optionkey]["value"]);
+                newLabelElement.appendChild(newLabelContent);
+                newOptionsDiv.appendChild(newInputElement);
+                newOptionsDiv.appendChild(newLabelElement);
+                newFieldsetElement.appendChild(newOptionsDiv);
+              })
+              newDiv.appendChild(newFieldsetElement);
+              break;
+
+
+            case "checkbox":
+              // Input Feld
+              newInputElement = document.createElement("input");
+              newInputElement.setAttribute("type", data["type"]);
+              newInputElement.setAttribute("name", key);
+              newInputElement.setAttribute("id", key);
+
+              if (data["checked"] === "true") newInputElement.setAttribute("checked", true);
+              // Label
+              newLabelElement = document.createElement("label");
+              newLabelElement.setAttribute("for", key);
+              newLabelContent = document.createTextNode(key);
+              newLabelElement.appendChild(newLabelContent);
+              // Am Div anhängen
+              newDiv.appendChild(newInputElement);
+              newDiv.appendChild(newLabelElement);
+              break;
+
+
+            case "range":
+              newInputElement = document.createElement("input");
+              newInputElement.setAttribute("type", data["type"]);
+              newInputElement.setAttribute("name", key);
+              newInputElement.setAttribute("id", key);
+              newInputElement.setAttribute("min", data["min"]);
+              newInputElement.setAttribute("max", data["max"]);
+              newInputElement.setAttribute("value", data["value"]);
+
+              newLabelElement = document.createElement("label");
+              newLabelElement.setAttribute("for", key);
+              newLabelContent = document.createTextNode(key);
+              newLabelElement.appendChild(newLabelContent);
+              newDiv.appendChild(newInputElement);
+              newDiv.appendChild(newLabelElement);
+              break;
+
+          }
+
+          // block in das dom div hängen
+          formDiv.appendChild(newDiv);
+        });
       }
-
-      xml = xml + "</VALUES>";
-      var xmlDoc = parser.parseFromString(xml, "application/xml");
-      console.log(xmlDoc);
+      xhttp.open("GET", url);
+      xhttp.send();
     }
+
+
+    function SetJSON(url, store) {
+      var object = {};
+      values = document.querySelectorAll('input');
+      for (var i = 0; i < values.length; i++) {
+        console.log(values[i].type);
+        switch (values[i].type) {
+          case 'radio':
+          case 'checkbox':
+            object[values[i].id] = values[i].checked;
+            break;
+          case 'color':
+          case 'range':
+          case 'time':
+            object[values[i].id] = values[i].value;
+            break;
+          default:
+            console.log("Feldtyp nicht definiert");
+        }
+      }
+      object['store'] = store;
+      var json = JSON.stringify(object);
+      console.log(json);
+    }
+
   </script>
 </body>

@@ -1,0 +1,15 @@
+[
+    {
+        "CLOCK_COLOR_SEKUNDEN_EINER1":{"type":"color", "value": "#ff0000"},
+        "CLOCK_COLOR_SEKUNDEN_ZEHNER2":{"type":"color", "value": "#00ff00"},
+        "CLOCK_COLOR_MINUTEN_EINER3":{"type":"color", "value": "#0000FF"},
+        "CLOCK_COLOR_MINUTEN_ZEHNER4":{"type":"color", "value": "#ffff00"},
+        "CLOCK_COLOR_STUNDEN_EINER5":{"type":"color", "value": "#ff00ff"},
+        "CLOCK_COLOR_STUNDEN_ZEHNER6":{"type":"color", "value": "#00ffff"},
+        "CLOCK_COLOR_OFF7":{"type":"color", "value": "#ffFFFF"},
+        "Helligkeit8":{"type":"range","min":"1", "max":"255", "value": "125"},
+        "wecker9":{"type":"time", "value": "07:01"},
+        "wecker_activ10":{"type":"checkbox", "checked": "false"},
+        "MODUS11":{"type":"radio", "options":[{"value": "Uhrzeit","checked":"false"}, {"value": "Party","checked":"true"}, {"value": "test","checked":"false"}]}
+    }
+]
