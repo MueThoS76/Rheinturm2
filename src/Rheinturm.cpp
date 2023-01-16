@@ -120,7 +120,11 @@ void setup() {
 
 
   // Webserver...
-  server.on("/", handle_OnConnect);
+  server.on("/", handleRoot);
+  server.on("/getdata",sendDataToBrowser);
+  server.on("/senddata",setDataFromBrowser);
+  server.on("/savedata",saveDataFromBrowser);
+  server.onNotFound(handleWebRequests);
   server.begin();
   Serial.println("HTTP server started");
   // Webserver ende
@@ -183,59 +187,76 @@ void loop() {
 
 
 
-
-
-
-void handle_OnConnect() {
-  server.send(200, "text/html", SendHTML(1,1));
+void handleRoot(){
+  server.sendHeader("Location", "/index.html",true);   //Redirect to our html web page
+  server.send(302, "text/plane","");
 }
 
+void sendDataToBrowser(){
+  // Sende Alle Werte als JSON zum Browser
+  server.sendContent(R"([
+    {
+        "CLOCK_COLOR_SEKUNDEN_EINER1":{"type":"color", "value": "#ff0000"},
+        "CLOCK_COLOR_SEKUNDEN_ZEHNER2":{"type":"color", "value": "#00ff00"},
+        "CLOCK_COLOR_MINUTEN_EINER3":{"type":"color", "value": "#0000FF"},
+        "CLOCK_COLOR_MINUTEN_ZEHNER4":{"type":"color", "value": "#ffff00"},
+        "CLOCK_COLOR_STUNDEN_EINER5":{"type":"color", "value": "#ff00ff"},
+        "CLOCK_COLOR_STUNDEN_ZEHNER6":{"type":"color", "value": "#00ffff"},
+        "CLOCK_COLOR_OFF7":{"type":"color", "value": "#ffFFFF"},
+        "Helligkeit8":{"type":"range","min":"1", "max":"255", "value": "125"},
+        "wecker9":{"type":"time", "value": "07:01"},
+        "wecker_activ10":{"type":"checkbox", "checked": "false"},
+        "MODUS11":{"type":"radio", "options":[{"value": "Uhrzeit","checked":"false"}, {"value": "Party","checked":"true"}, {"value": "test","checked":"false"}]}
+    }
+])");
+};
 
+void setDataFromBrowser(){
+  // Setze die Werte die vom Browser kommen als aktive parameter
+};
+void saveDataFromBrowser(){
+  // Setze die Werte die vom Browser kommen als aktive parameter
+  // und speichere alles auch im eeprom
+};
 
-String SendHTML(uint8_t led1stat,uint8_t led2stat){
-  String ptr = "<!DOCTYPE html> <html>\n";
-  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr +="<title>Rheinturm</title>\n";
-  ptr +="<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
-  ptr +="body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;} h3 {color: #444444;margin-bottom: 50px;}\n";
-  ptr +=".button {display: block;width: 80px;background-color: #3498db;border: none;color: white;padding: 13px 30px;text-decoration: none;font-size: 25px;margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n";
-  ptr +=".button-on {background-color: #3498db;}\n";
-  ptr +=".button-on:active {background-color: #2980b9;}\n";
-  ptr +=".button-off {background-color: #34495e;}\n";
-  ptr +=".button-off:active {background-color: #2c3e50;}\n";
-  ptr +="p {font-size: 14px;color: #888;margin-bottom: 10px;}\n";
-  ptr +="</style>\n";
-  ptr +="</head>\n";
-  ptr +="<body>\n";
-  ptr +="<h1>Rheinturm</h1>\n";
-  ptr +="<h3>Konfiguration</h3>\n";
-  ptr +="<br>";
-  char myHex[10] = "";
-  ptr += "CLOCK_COLOR_SEKUNDEN_EINER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_SEKUNDEN_EINER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_SEKUNDEN_ZEHNER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_SEKUNDEN_ZEHNER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_MINUTEN_EINER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_MINUTEN_EINER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_MINUTEN_ZEHNER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_MINUTEN_ZEHNER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_STUNDEN_EINER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_STUNDEN_EINER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_STUNDEN_ZEHNER: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER,myHex,16);
-  ptr += "<br>";
-  ptr += "CLOCK_COLOR_OFF: ";
-  ptr += itoa(clock_colors.CLOCK_COLOR_OFF,myHex,16);
-  ptr += "<br>";
+void handleWebRequests(){
+      if(loadFromSpiffs(server.uri())) return;
+  String message = "File Not Detected\n\n";
+  message += "URI: ";
+  message += server.uri();
+  message += "\nMethod: ";
+  message += (server.method() == HTTP_GET)?"GET":"POST";
+  message += "\nArguments: ";
+  message += server.args();
+  message += "\n";
+  for (uint8_t i=0; i<server.args(); i++){
+    message += " NAME:"+server.argName(i) + "\n VALUE:" + server.arg(i) + "\n";
+  }
+  server.send(404, "text/plain", message);
+  Serial.println(message);
+  };
 
+bool loadFromSpiffs(String path){
+  String dataType = "text/plain";
+  if(path.endsWith("/")) path += "index.htm";
 
+  if(path.endsWith(".src")) path = path.substring(0, path.lastIndexOf("."));
+  else if(path.endsWith(".html")) dataType = "text/html";
+  else if(path.endsWith(".htm")) dataType = "text/html";
+  else if(path.endsWith(".css")) dataType = "text/css";
+  else if(path.endsWith(".js")) dataType = "application/javascript";
+  else if(path.endsWith(".png")) dataType = "image/png";
+  else if(path.endsWith(".gif")) dataType = "image/gif";
+  else if(path.endsWith(".jpg")) dataType = "image/jpeg";
+  else if(path.endsWith(".ico")) dataType = "image/x-icon";
+  else if(path.endsWith(".xml")) dataType = "text/xml";
+  else if(path.endsWith(".pdf")) dataType = "application/pdf";
+  else if(path.endsWith(".zip")) dataType = "application/zip";
+  File dataFile = SPIFFS.open(path.c_str(), "r");
+  if (server.hasArg("download")) dataType = "application/octet-stream";
+  if (server.streamFile(dataFile, dataType) != dataFile.size()) {
+  }
 
-  ptr +="</body>\n";
-  ptr +="</html>\n";
-  return ptr;
+  dataFile.close();
+  return true;
 }

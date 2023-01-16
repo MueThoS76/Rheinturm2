@@ -32,10 +32,18 @@ struct Colors
 
 
 bool getNTPtime(int sec, Uhrzeit* uhrzeit);
-void handle_OnConnect();
 void display_clock(CRGB* ClockLeds, Uhrzeit* uhrzeit, Colors* clock_colors);
 void display_aux();
 String SendHTML(uint8_t led1stat,uint8_t led2stat);
+
+void handleRoot();
+void sendDataToBrowser();
+void setDataFromBrowser();
+void saveDataFromBrowser();
+void handleWebRequests();
+bool loadFromSpiffs(String path);
+
+
 
 
 #define NUM_PIXELS_CLOCK 39 // Anzahl LEDs
