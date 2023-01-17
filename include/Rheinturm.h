@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <FastLED.h>
+#include <ArduinoJson.h>
 
 struct ziffern {
   byte einer;
@@ -21,6 +22,7 @@ struct Colors
     uint CLOCK_COLOR_STUNDEN_EINER;
     uint CLOCK_COLOR_STUNDEN_ZEHNER;
     uint CLOCK_COLOR_OFF;
+    uint BRIGHTNESS;
 
 };
 
@@ -42,7 +44,7 @@ void setDataFromBrowser();
 void saveDataFromBrowser();
 void handleWebRequests();
 bool loadFromSpiffs(String path);
-
+//void setCrossOrigin();
 
 
 
@@ -50,7 +52,7 @@ bool loadFromSpiffs(String path);
 #define LED_PIN_CLOCK    16 // LED Pin
 #define NUM_PIXELS_AUX   3  // Anzahl LEDs
 #define LED_PIN_AUX      17 // LED Pin
-#define BRIGHTNESS  10
+
 
 #define LED_SEKUNDEN_EINER_MIN 0
 #define LED_SEKUNDEN_EINER_MAX 8

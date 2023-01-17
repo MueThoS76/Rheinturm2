@@ -9,3 +9,6 @@
 *debug.cfg
 *esp32.svd
 .vscode
+wifi-password
+wifi-ssid
+WiFiSettings-language

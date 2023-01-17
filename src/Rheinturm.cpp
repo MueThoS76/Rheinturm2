@@ -29,7 +29,7 @@ CRGB AuxLeds[NUM_PIXELS_AUX];
 
 Uhrzeit uhrzeit;
 
-
+StaticJsonDocument<250> jsonDocument;
 
 
 int Modus = 1;
@@ -62,6 +62,8 @@ void setup() {
 
   SPIFFS.begin(true);  // Will format on the first run after failing to mount
 
+
+  WiFiSettings.password = "12345678";
   // Force WPA secured WiFi for the software access point.
   // Because OTA is remote code execution (RCE) by definition, the password
   // should be kept secret. By default, WiFiSettings will become an insecure
@@ -111,7 +113,7 @@ void setup() {
   clock_colors.CLOCK_COLOR_STUNDEN_EINER   = preferences.getUInt("CCHE", 0xFFFF00);
   clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER  = preferences.getUInt("CCHZ", 0xFFFF00);
   clock_colors.CLOCK_COLOR_OFF             = preferences.getUInt("CCO" , 0x000000);
-
+  clock_colors.BRIGHTNESS                  = preferences.getUInt("BRI" , 10);
 
 
 
@@ -120,9 +122,10 @@ void setup() {
 
 
   // Webserver...
+  server.enableCORS();
   server.on("/", handleRoot);
   server.on("/getdata",sendDataToBrowser);
-  server.on("/senddata",setDataFromBrowser);
+  server.on("/senddata", HTTP_POST,setDataFromBrowser);
   server.on("/savedata",saveDataFromBrowser);
   server.onNotFound(handleWebRequests);
   server.begin();
@@ -133,7 +136,7 @@ void setup() {
   FastLED.addLeds<PL9823, LED_PIN_CLOCK>(ClockLeds, NUM_PIXELS_CLOCK);
   FastLED.addLeds<PL9823, LED_PIN_AUX>(AuxLeds, NUM_PIXELS_AUX);
   FastLED.setMaxPowerInMilliWatts(1000);
-  FastLED.setBrightness(  BRIGHTNESS );
+  FastLED.setBrightness(  clock_colors.BRIGHTNESS );
   FastLED.clear();
   FastLED.show();
 }
@@ -194,32 +197,89 @@ void handleRoot(){
 
 void sendDataToBrowser(){
   // Sende Alle Werte als JSON zum Browser
-  server.sendContent(R"([
-    {
-        "CLOCK_COLOR_SEKUNDEN_EINER1":{"type":"color", "value": "#ff0000"},
-        "CLOCK_COLOR_SEKUNDEN_ZEHNER2":{"type":"color", "value": "#00ff00"},
-        "CLOCK_COLOR_MINUTEN_EINER3":{"type":"color", "value": "#0000FF"},
-        "CLOCK_COLOR_MINUTEN_ZEHNER4":{"type":"color", "value": "#ffff00"},
-        "CLOCK_COLOR_STUNDEN_EINER5":{"type":"color", "value": "#ff00ff"},
-        "CLOCK_COLOR_STUNDEN_ZEHNER6":{"type":"color", "value": "#00ffff"},
-        "CLOCK_COLOR_OFF7":{"type":"color", "value": "#ffFFFF"},
-        "Helligkeit8":{"type":"range","min":"1", "max":"255", "value": "125"},
-        "wecker9":{"type":"time", "value": "07:01"},
-        "wecker_activ10":{"type":"checkbox", "checked": "false"},
-        "MODUS11":{"type":"radio", "options":[{"value": "Uhrzeit","checked":"false"}, {"value": "Party","checked":"true"}, {"value": "test","checked":"false"}]}
-    }
-])");
+  String stringData = "[{";
+  stringData += "\"CLOCK_COLOR_SEKUNDEN_EINER\":{\"type\":\"color\", \"value\": \"#" + String(clock_colors.CLOCK_COLOR_SEKUNDEN_EINER, HEX) + "\"},";
+  stringData += "\"CLOCK_COLOR_SEKUNDEN_ZEHNER\":{\"type\":\"color\", \"value\": \"#" + String(clock_colors.CLOCK_COLOR_SEKUNDEN_ZEHNER, HEX) + "\"},";
+  stringData += "\"CLOCK_COLOR_MINUTEN_EINER\":{\"type\":\"color\", \"value\": \"#" + String(clock_colors.CLOCK_COLOR_MINUTEN_EINER, HEX) + "\"},";
+  stringData += "\"CLOCK_COLOR_MINUTEN_ZEHNER\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_MINUTEN_ZEHNER, HEX) +"\"},";
+  stringData += "\"CLOCK_COLOR_STUNDEN_EINER\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_STUNDEN_EINER, HEX) +"\"},";
+  stringData += "\"CLOCK_COLOR_STUNDEN_ZEHNER\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER, HEX) +"\"},";
+  stringData += "\"CLOCK_COLOR_OFF\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_OFF, HEX) +"\"},";
+  stringData += "\"Helligkeit\":{\"type\":\"range\",\"min\":\"1\", \"max\":\"255\", \"value\": \""+String(clock_colors.BRIGHTNESS)+"\"},";
+  stringData += "\"wecker\":{\"type\":\"time\", \"value\": \"07:01\"},";
+  stringData += "\"wecker_activ\":{\"type\":\"checkbox\", \"checked\": \"false\"},";
+  stringData += "\"MODUS\":{\"type\":\"radio\", \"options\":[{\"value\": \"Uhrzeit\",\"checked\":\"false\"}, {\"value\": \"Party\",\"checked\":\"true\"}, {\"value\": \"test\",\"checked\":\"false\"}]}";
+  stringData += "}]";
+   Serial.println(stringData);
+
+  server.send(200, F("application/json"), stringData);
 };
 
+
+
+
+
+
 void setDataFromBrowser(){
-  // Setze die Werte die vom Browser kommen als aktive parameter
-};
+  if (server.hasArg("plain") == false) {
+  }
+  String body = server.arg("plain");
+  deserializeJson(jsonDocument, body);
+
+
+  String test = jsonDocument["CLOCK_COLOR_SEKUNDEN_ZEHNER"];
+  // int red_value = jsonDocument["red"];
+  // int green_value = jsonDocument["green"];
+  // int blue_value = jsonDocument["blue"];
+
+  // ledcWrite(redChannel, red_value);
+  // ledcWrite(greenChannel,green_value);
+  // ledcWrite(blueChannel, blue_value);
+
+  server.send(200, "application/json", "{}");
+
+Serial.println(test);
+
+
+}
+
+void _setDataFromBrowser(){
+  // Soll: Setze die Werte die vom Browser kommen als aktive parameter
+ WiFiClient client = server.client();
+String c="";
+  if (client) {
+    Serial.println(F("\n[server] client connected"));
+    while (client.connected()) {
+      Serial.println("while Connected: ");
+      char buff[1024];
+        client.readBytes((char *)&buff,3);
+
+      Serial.printf(">%s<",  ((char *)&buff));
+     client.stop();
+    }
+    Serial.println("while Connected: ende");
+  };
+  server.send(202);
+  Serial.println("Client ende: 202 gesendet ");
+}
+
+
+
+
+
+
+
+
+
+
+
 void saveDataFromBrowser(){
   // Setze die Werte die vom Browser kommen als aktive parameter
   // und speichere alles auch im eeprom
 };
 
 void handleWebRequests(){
+ server.sendHeader("Access-Control-Allow-Origin", "*");
       if(loadFromSpiffs(server.uri())) return;
   String message = "File Not Detected\n\n";
   message += "URI: ";
@@ -260,3 +320,12 @@ bool loadFromSpiffs(String path){
   dataFile.close();
   return true;
 }
+
+
+
+void setCrossOrigin(){
+    server.sendHeader(F("Access-Control-Allow-Origin"), F("*"));
+    server.sendHeader(F("Access-Control-Max-Age"), F("600"));
+    server.sendHeader(F("Access-Control-Allow-Methods"), F("PUT,POST,GET,OPTIONS"));
+    server.sendHeader(F("Access-Control-Allow-Headers"), F("*"));
+};
