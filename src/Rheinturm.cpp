@@ -29,7 +29,7 @@ CRGB AuxLeds[NUM_PIXELS_AUX];
 
 Uhrzeit uhrzeit;
 
-StaticJsonDocument<250> jsonDocument;
+StaticJsonDocument<1024> jsonDocument;
 
 
 int Modus = 1;
@@ -126,7 +126,6 @@ void setup() {
   server.on("/", handleRoot);
   server.on("/getdata",sendDataToBrowser);
   server.on("/senddata", HTTP_POST,setDataFromBrowser);
-  server.on("/savedata",saveDataFromBrowser);
   server.onNotFound(handleWebRequests);
   server.begin();
   Serial.println("HTTP server started");
@@ -205,7 +204,7 @@ void sendDataToBrowser(){
   stringData += "\"CLOCK_COLOR_STUNDEN_EINER\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_STUNDEN_EINER, HEX) +"\"},";
   stringData += "\"CLOCK_COLOR_STUNDEN_ZEHNER\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER, HEX) +"\"},";
   stringData += "\"CLOCK_COLOR_OFF\":{\"type\":\"color\", \"value\": \"#"+ String(clock_colors.CLOCK_COLOR_OFF, HEX) +"\"},";
-  stringData += "\"Helligkeit\":{\"type\":\"range\",\"min\":\"1\", \"max\":\"255\", \"value\": \""+String(clock_colors.BRIGHTNESS)+"\"},";
+  stringData += "\"BRIGHTNESS\":{\"type\":\"range\",\"min\":\"1\", \"max\":\"255\", \"value\": \""+String(clock_colors.BRIGHTNESS)+"\"},";
   stringData += "\"wecker\":{\"type\":\"time\", \"value\": \"07:01\"},";
   stringData += "\"wecker_activ\":{\"type\":\"checkbox\", \"checked\": \"false\"},";
   stringData += "\"MODUS\":{\"type\":\"radio\", \"options\":[{\"value\": \"Uhrzeit\",\"checked\":\"false\"}, {\"value\": \"Party\",\"checked\":\"true\"}, {\"value\": \"test\",\"checked\":\"false\"}]}";
@@ -225,58 +224,46 @@ void setDataFromBrowser(){
   }
   String body = server.arg("plain");
   deserializeJson(jsonDocument, body);
-
-
-  String test = jsonDocument["CLOCK_COLOR_SEKUNDEN_ZEHNER"];
-  // int red_value = jsonDocument["red"];
-  // int green_value = jsonDocument["green"];
-  // int blue_value = jsonDocument["blue"];
-
-  // ledcWrite(redChannel, red_value);
-  // ledcWrite(greenChannel,green_value);
-  // ledcWrite(blueChannel, blue_value);
-
   server.send(200, "application/json", "{}");
 
-Serial.println(test);
 
+  JsonObject root = jsonDocument.as<JsonObject>();
+  for (JsonPair keyValue : root) {
+    Serial.print(keyValue.key().c_str());
+    const String test = root[keyValue.key().c_str()];
+    Serial.println(": " + test);
+  }
+
+  clock_colors.CLOCK_COLOR_SEKUNDEN_EINER  = jsonDocument["CLOCK_COLOR_SEKUNDEN_EINER"];
+  clock_colors.CLOCK_COLOR_SEKUNDEN_ZEHNER = jsonDocument["CLOCK_COLOR_SEKUNDEN_ZEHNER"];
+  clock_colors.CLOCK_COLOR_MINUTEN_EINER   = jsonDocument["CLOCK_COLOR_MINUTEN_EINER"];
+  clock_colors.CLOCK_COLOR_MINUTEN_ZEHNER  = jsonDocument["CLOCK_COLOR_MINUTEN_ZEHNER"];
+  clock_colors.CLOCK_COLOR_STUNDEN_EINER   = jsonDocument["CLOCK_COLOR_STUNDEN_EINER"];
+  clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER  = jsonDocument["CLOCK_COLOR_STUNDEN_ZEHNER"];
+  clock_colors.CLOCK_COLOR_OFF             = jsonDocument["CLOCK_COLOR_OFF"];
+  clock_colors.BRIGHTNESS                  = jsonDocument["BRIGHTNESS"];
+  FastLED.setBrightness(  clock_colors.BRIGHTNESS );
+
+  if (jsonDocument["store"]==true){
+     // Einstellungen laden....
+    preferences.begin("config", false);
+    preferences.putUInt("CCSE", clock_colors.CLOCK_COLOR_SEKUNDEN_EINER);
+    preferences.putUInt("CCSZ", clock_colors.CLOCK_COLOR_SEKUNDEN_ZEHNER);
+    preferences.putUInt("CCME", clock_colors.CLOCK_COLOR_MINUTEN_EINER);
+    preferences.putUInt("CCMZ", clock_colors.CLOCK_COLOR_MINUTEN_ZEHNER);
+    preferences.putUInt("CCHE", clock_colors.CLOCK_COLOR_STUNDEN_EINER);
+    preferences.putUInt("CCHZ", clock_colors.CLOCK_COLOR_STUNDEN_ZEHNER);
+    preferences.putUInt("CCO" , clock_colors.CLOCK_COLOR_OFF);
+    preferences.putUInt("BRI" , clock_colors.BRIGHTNESS);
+    Serial.println("Daten gespeichert");
+    preferences.end();
+  }
 
 }
 
-void _setDataFromBrowser(){
-  // Soll: Setze die Werte die vom Browser kommen als aktive parameter
- WiFiClient client = server.client();
-String c="";
-  if (client) {
-    Serial.println(F("\n[server] client connected"));
-    while (client.connected()) {
-      Serial.println("while Connected: ");
-      char buff[1024];
-        client.readBytes((char *)&buff,3);
-
-      Serial.printf(">%s<",  ((char *)&buff));
-     client.stop();
-    }
-    Serial.println("while Connected: ende");
-  };
-  server.send(202);
-  Serial.println("Client ende: 202 gesendet ");
-}
 
 
 
-
-
-
-
-
-
-
-
-void saveDataFromBrowser(){
-  // Setze die Werte die vom Browser kommen als aktive parameter
-  // und speichere alles auch im eeprom
-};
 
 void handleWebRequests(){
  server.sendHeader("Access-Control-Allow-Origin", "*");

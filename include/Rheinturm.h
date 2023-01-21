@@ -41,7 +41,6 @@ String SendHTML(uint8_t led1stat,uint8_t led2stat);
 void handleRoot();
 void sendDataToBrowser();
 void setDataFromBrowser();
-void saveDataFromBrowser();
 void handleWebRequests();
 bool loadFromSpiffs(String path);
 //void setCrossOrigin();
